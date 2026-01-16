@@ -1,13 +1,16 @@
-// @fatturazione-elettronica-aruba/core
-// Core HTTP client, authentication and base types for Aruba Electronic Invoicing
+// Main client
+export { ArubaClient, type ArubaClientOptions } from './client.js';
 
-export const VERSION = '0.0.0';
+// HTTP client
+export {
+  HttpClient,
+  type HttpClientOptions,
+  type RequestOptions,
+  type BaseUrlType,
+} from './http/index.js';
 
-// Types will be exported here
-// export * from './types';
+// Auth client
+export { AuthClient, type AuthClientOptions } from './auth/index.js';
 
-// Auth module will be exported here
-// export * from './auth';
-
-// HTTP client will be exported here
-// export * from './http';
+// Types
+export * from './types/index.js';
