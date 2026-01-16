@@ -1,7 +1,2 @@
-// @fatturazione-elettronica-aruba/notifications
-// SDI notifications management for Aruba Electronic Invoicing
-
-export const VERSION = '0.0.0';
-
-// Notifications will be exported here
-// export * from './notifications';
+export { NotificationsClient, type NotificationsClientOptions } from './notifications-client.js';
+export * from './types.js';
