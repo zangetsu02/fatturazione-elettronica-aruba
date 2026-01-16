@@ -14,3 +14,6 @@ export { AuthClient, type AuthClientOptions } from './auth/index.js';
 
 // Types
 export * from './types/index.js';
+
+// Constants
+export * from './constants.js';
