@@ -54,34 +54,6 @@ importers:
         specifier: ^4.2.2
         version: 4.2.2(@parcel/watcher@2.5.4)(@types/node@20.19.30)(@vue/compiler-sfc@3.5.26)(better-sqlite3@12.6.0)(cac@6.7.14)(db0@0.3.4(better-sqlite3@12.6.0))(eslint@9.39.2(jiti@2.6.1))(ioredis@5.9.2)(lightningcss@1.30.2)(magicast@0.5.1)(optionator@0.9.4)(rollup@4.55.1)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@20.19.30)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))(yaml@2.8.2)
 
-  apps/example:
-    dependencies:
-      '@fatturazione-elettronica-aruba/communications':
-        specifier: workspace:*
-        version: link:../../packages/communications
-      '@fatturazione-elettronica-aruba/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@fatturazione-elettronica-aruba/invoices':
-        specifier: workspace:*
-        version: link:../../packages/invoices
-      '@fatturazione-elettronica-aruba/notifications':
-        specifier: workspace:*
-        version: link:../../packages/notifications
-      '@fatturazione-elettronica-aruba/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
-      '@fatturazione-elettronica-aruba/xml-builder':
-        specifier: workspace:*
-        version: link:../../packages/xml-builder
-    devDependencies:
-      '@fatturazione-elettronica-aruba/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      tsx:
-        specifier: ^4.0.0
-        version: 4.21.0
-
   packages/communications:
     dependencies:
       '@fatturazione-elettronica-aruba/core':
@@ -12641,6 +12613,7 @@ snapshots:
   get-tsconfig@4.13.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
+    optional: true
 
   giget@2.0.0:
     dependencies:
@@ -15255,7 +15228,8 @@ snapshots:
 
   resolve-from@5.0.0: {}
 
-  resolve-pkg-maps@1.0.0: {}
+  resolve-pkg-maps@1.0.0:
+    optional: true
 
   resolve@1.22.11:
     dependencies:
@@ -15873,6 +15847,7 @@ snapshots:
       get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   tunnel-agent@0.6.0:
     dependencies:
