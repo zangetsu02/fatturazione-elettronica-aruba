@@ -25,7 +25,7 @@ let notificationsInstance: NotificationsClient | null = null;
 export function useArubaNotifications(): NotificationsClient {
   if (!notificationsInstance) {
     const client = useArubaClient();
-    notificationsInstance = new NotificationsClient(client.http);
+    notificationsInstance = new NotificationsClient({ httpClient: client.http });
   }
 
   return notificationsInstance;

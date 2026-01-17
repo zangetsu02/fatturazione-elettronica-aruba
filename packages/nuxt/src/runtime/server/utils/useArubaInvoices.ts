@@ -25,7 +25,7 @@ let invoicesInstance: InvoicesClient | null = null;
 export function useArubaInvoices(): InvoicesClient {
   if (!invoicesInstance) {
     const client = useArubaClient();
-    invoicesInstance = new InvoicesClient(client.http);
+    invoicesInstance = new InvoicesClient({ httpClient: client.http });
   }
 
   return invoicesInstance;

@@ -25,7 +25,7 @@ let communicationsInstance: CommunicationsClient | null = null;
 export function useArubaCommunications(): CommunicationsClient {
   if (!communicationsInstance) {
     const client = useArubaClient();
-    communicationsInstance = new CommunicationsClient(client.http);
+    communicationsInstance = new CommunicationsClient({ httpClient: client.http });
   }
 
   return communicationsInstance;
