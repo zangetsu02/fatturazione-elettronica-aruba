@@ -1,6 +1,6 @@
 {
   "name": "@fatturazione-aruba/invoices",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Invoice management (send/receive) for Aruba Electronic Invoicing",
   "type": "module",
   "main": "./dist/index.cjs",

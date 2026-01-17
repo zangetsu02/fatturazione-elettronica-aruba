@@ -1,6 +1,6 @@
 {
   "name": "@fatturazione-aruba/xml-builder",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "XML builder for FatturaPA electronic invoices",
   "type": "module",
   "main": "./dist/index.cjs",
