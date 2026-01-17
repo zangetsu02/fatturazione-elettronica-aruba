@@ -37,14 +37,6 @@
     "typescript": "^5.3.0",
     "vitest": "^2.1.0"
   },
-  "peerDependencies": {
-    "@fatturazione-elettronica-aruba/core": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "@fatturazione-elettronica-aruba/core": {
-      "optional": true
-    }
-  },
   "keywords": [
     "fattura",
     "elettronica",
@@ -58,7 +50,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AlessioRocchi/fatturazione_elettronica_aruba",
+    "url": "https://github.com/zangetsu02/fatturazione_elettronica_aruba",
     "directory": "packages/xml-builder"
   }
 }

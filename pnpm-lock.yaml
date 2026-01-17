@@ -104,6 +104,9 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@fatturazione-elettronica-aruba/invoices':
+        specifier: workspace:*
+        version: link:../invoices
       '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config

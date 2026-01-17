@@ -1,0 +1,21 @@
+{
+  "name": "@fatturazione-elettronica-aruba/integration-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "integration": "vitest run --config vitest.config.ts",
+    "integration:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "@fatturazione-elettronica-aruba/core": "workspace:*",
+    "@fatturazione-elettronica-aruba/invoices": "workspace:*",
+    "@fatturazione-elettronica-aruba/notifications": "workspace:*",
+    "@fatturazione-elettronica-aruba/communications": "workspace:*",
+    "@fatturazione-elettronica-aruba/utils": "workspace:*"
+  }
+}
