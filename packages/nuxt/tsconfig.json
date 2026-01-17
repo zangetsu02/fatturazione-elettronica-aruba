@@ -1,0 +1,13 @@
+{
+  "extends": "@fatturazione-elettronica-aruba/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": ["node"],
+    "paths": {
+      "#imports": ["./node_modules/nuxt/dist/app"],
+    },
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "playground"],
+}

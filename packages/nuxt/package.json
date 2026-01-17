@@ -1,0 +1,67 @@
+{
+  "name": "@fatturazione-elettronica-aruba/nuxt",
+  "version": "0.1.0",
+  "description": "Nuxt module for Aruba Electronic Invoicing SDK",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types.d.mts",
+        "default": "./dist/module.mjs"
+      },
+      "require": {
+        "types": "./dist/types.d.ts",
+        "default": "./dist/module.cjs"
+      }
+    }
+  },
+  "main": "./dist/module.cjs",
+  "module": "./dist/module.mjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "nuxt-module-build build",
+    "dev": "nuxt-module-build build --stub && nuxt-module-build prepare",
+    "dev:playground": "nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepack": "pnpm run build"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "aruba",
+    "fatturazione-elettronica",
+    "e-invoice",
+    "electronic-invoice",
+    "sdi",
+    "italy",
+    "server-only"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@fatturazione-elettronica-aruba/communications": "workspace:*",
+    "@fatturazione-elettronica-aruba/core": "workspace:*",
+    "@fatturazione-elettronica-aruba/invoices": "workspace:*",
+    "@fatturazione-elettronica-aruba/notifications": "workspace:*",
+    "@fatturazione-elettronica-aruba/utils": "workspace:*",
+    "@fatturazione-elettronica-aruba/xml-builder": "workspace:*",
+    "@nuxt/kit": "^3.14.0",
+    "defu": "^6.1.4"
+  },
+  "devDependencies": {
+    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*",
+    "@nuxt/module-builder": "^0.8.4",
+    "@nuxt/schema": "^3.14.0",
+    "nuxt": "^3.14.0",
+    "typescript": "^5.6.3"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.0.0"
+  }
+}
