@@ -18,25 +18,13 @@ export default defineAppConfig({
     },
   },
   socials: {
-    github: 'https://github.com/zangetsu02/fatturazione-aruba',
-    npm: 'https://www.npmjs.com/org/fatturazione-aruba',
+    npm: 'https://www.npmjs.com/org/fatturazione-elettronica-aruba',
   },
   toc: {
     title: 'On this page',
-    bottom: {
-      title: 'Community',
-      links: [
-        {
-          icon: 'i-simple-icons-github',
-          label: 'GitHub',
-          to: 'https://github.com/zangetsu02/fatturazione-aruba',
-          target: '_blank',
-        },
-      ],
-    },
   },
   github: {
-    url: 'https://github.com/zangetsu02/fatturazione-aruba',
+    url: 'https://github.com/zangetsu02/fatturazione-elettronica-aruba',
     branch: 'main',
     rootDir: 'apps/docs/content',
   },

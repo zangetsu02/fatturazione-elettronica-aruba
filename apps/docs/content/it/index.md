@@ -343,34 +343,69 @@ Integra le API di Fatturazione Elettronica Aruba v2 nel tuo progetto Node.js. :b
     ::::u-page-card
     ---
     spotlight: true
-    class: col-span-2
+    class: col-span-2 lg:col-span-1
+    to: /it/integrations/nuxt
     ---
-      :::::div{.bg-elevated.rounded-lg.p-4.overflow-x-auto}
+      :::::div{.bg-elevated.rounded-lg.p-3.overflow-x-auto}
       ```typescript
-      import { ArubaApiError, AuthenticationError, ValidationError } from '@fatturazione-elettronica-aruba/core';
+      // nuxt.config.ts
+      export default defineNuxtConfig({
+        modules: [
+          '@fatturazione-elettronica-aruba/nuxt'
+        ],
+        fatturazioneAruba: {
+          environment: 'production',
+        },
+      });
 
-      try {
-        await invoices.upload({ dataFile: xmlBase64 });
-      } catch (error) {
-        if (error instanceof AuthenticationError) {
-          // 401 - Token scaduto o credenziali invalide
-          console.log('Effettua nuovamente il login');
-        } else if (error instanceof ValidationError) {
-          // 400 - Errore di validazione fattura
-          console.log('Errori:', error.details);
-        } else if (error instanceof ArubaApiError) {
-          // Altri errori API
-          console.log(`[${error.code}] ${error.message}`);
-        }
-      }
+      // server/api/invoices.get.ts
+      export default defineEventHandler(async () => {
+        const invoices = useArubaInvoices();
+        return await invoices.findSent({...});
+      });
       ```
       :::::
 
     #title
-    Gestione [Errori]{.text-primary} Dettagliata
+    [Nuxt]{.text-primary} Module
 
     #description
-    Ogni tipo di errore ha la sua classe dedicata con codice, messaggio e dettagli. Niente più parsing di stringhe di errore generiche.
+    Integrazione nativa con Nuxt. Composables server-side auto-importati, configurazione semplificata e autenticazione automatica.
+    ::::
+
+    ::::u-page-card
+    ---
+    spotlight: true
+    class: col-span-2 lg:col-span-1
+    to: /it/api-reference/errors
+    ---
+      :::::div{.flex.flex-col.gap-2.py-2}
+        ::::::div{.flex.items-center.gap-3.p-2}
+        :icon{name="i-lucide-shield-alert" .size-5.text-red-500}
+        `AuthenticationError` - Credenziali invalide
+        ::::::
+
+        ::::::div{.flex.items-center.gap-3.p-2}
+        :icon{name="i-lucide-file-warning" .size-5.text-yellow-500}
+        `ValidationError` - Errore validazione
+        ::::::
+
+        ::::::div{.flex.items-center.gap-3.p-2}
+        :icon{name="i-lucide-server-crash" .size-5.text-orange-500}
+        `ArubaApiError` - Errore API generico
+        ::::::
+
+        ::::::div{.flex.items-center.gap-3.p-2}
+        :icon{name="i-lucide-wifi-off" .size-5.text-gray-500}
+        `NetworkError` - Errore di rete
+        ::::::
+      :::::
+
+    #title
+    Gestione [Errori]{.text-primary}
+
+    #description
+    Ogni tipo di errore ha la sua classe dedicata con codice, messaggio e dettagli strutturati.
     ::::
   :::
 ::
