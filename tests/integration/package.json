@@ -1,5 +1,5 @@
 {
-  "name": "@fatturazione-elettronica-aruba/integration-tests",
+  "name": "@fatturazione-aruba/integration-tests",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,10 +12,10 @@
     "vitest": "^2.1.9"
   },
   "dependencies": {
-    "@fatturazione-elettronica-aruba/core": "workspace:*",
-    "@fatturazione-elettronica-aruba/invoices": "workspace:*",
-    "@fatturazione-elettronica-aruba/notifications": "workspace:*",
-    "@fatturazione-elettronica-aruba/communications": "workspace:*",
-    "@fatturazione-elettronica-aruba/utils": "workspace:*"
+    "@fatturazione-aruba/core": "workspace:*",
+    "@fatturazione-aruba/invoices": "workspace:*",
+    "@fatturazione-aruba/notifications": "workspace:*",
+    "@fatturazione-aruba/communications": "workspace:*",
+    "@fatturazione-aruba/utils": "workspace:*"
   }
 }

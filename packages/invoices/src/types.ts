@@ -1,4 +1,4 @@
-import type { Company, PagedResponse } from '@fatturazione-elettronica-aruba/core';
+import type { Company, PagedResponse } from '@fatturazione-aruba/core';
 
 export type InvoiceStatus =
   | 'Inviata'

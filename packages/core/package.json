@@ -1,5 +1,5 @@
 {
-  "name": "@fatturazione-elettronica-aruba/core",
+  "name": "@fatturazione-aruba/core",
   "version": "0.0.0",
   "description": "Core HTTP client, authentication and base types for Aruba Electronic Invoicing",
   "type": "module",
@@ -40,6 +40,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*"
+    "@fatturazione-aruba/typescript-config": "workspace:*"
   }
 }

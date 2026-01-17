@@ -1,5 +1,5 @@
 {
-  "name": "@fatturazione-elettronica-aruba/xml-builder",
+  "name": "@fatturazione-aruba/xml-builder",
   "version": "0.0.0",
   "description": "XML builder for FatturaPA electronic invoices",
   "type": "module",
@@ -32,7 +32,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*",
+    "@fatturazione-aruba/typescript-config": "workspace:*",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
     "vitest": "^2.1.0"
@@ -50,7 +50,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zangetsu02/fatturazione-elettronica-aruba",
+    "url": "https://github.com/zangetsu02/fatturazione-aruba",
     "directory": "packages/xml-builder"
   }
 }

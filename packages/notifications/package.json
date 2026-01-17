@@ -1,5 +1,5 @@
 {
-  "name": "@fatturazione-elettronica-aruba/notifications",
+  "name": "@fatturazione-aruba/notifications",
   "version": "0.0.0",
   "description": "SDI notifications management for Aruba Electronic Invoicing",
   "type": "module",
@@ -40,9 +40,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@fatturazione-elettronica-aruba/core": "workspace:*"
+    "@fatturazione-aruba/core": "workspace:*"
   },
   "devDependencies": {
-    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*"
+    "@fatturazione-aruba/typescript-config": "workspace:*"
   }
 }

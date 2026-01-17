@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@fatturazione-elettronica-aruba/typescript-config"]
+  "ignore": ["@fatturazione-aruba/typescript-config"]
 }

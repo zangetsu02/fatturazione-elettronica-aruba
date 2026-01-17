@@ -1,4 +1,4 @@
-import type { HttpClient } from '@fatturazione-elettronica-aruba/core';
+import type { HttpClient } from '@fatturazione-aruba/core';
 import type {
   CreateTransmissionRequest,
   CreateTransmissionResponse,
