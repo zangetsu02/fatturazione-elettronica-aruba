@@ -15,8 +15,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
-    "test:integration": "pnpm --filter @fatturazione-aruba/integration-tests integration",
-    "test:e2e": "pnpm --filter @fatturazione-aruba/e2e-tests e2e",
+    "test:integration": "pnpm --filter @fatturazione-elettronica-aruba/integration-tests integration",
+    "test:e2e": "pnpm --filter @fatturazione-elettronica-aruba/e2e-tests e2e",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish"

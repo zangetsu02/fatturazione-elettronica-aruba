@@ -1,4 +1,4 @@
-import { ArubaClient } from '@fatturazione-aruba/core';
+import { ArubaClient } from '@fatturazione-elettronica-aruba/core';
 
 export function getTestCredentials() {
   const username = process.env.ARUBA_USERNAME;

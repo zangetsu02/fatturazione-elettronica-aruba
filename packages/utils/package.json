@@ -1,6 +1,6 @@
 {
-  "name": "@fatturazione-aruba/utils",
-  "version": "0.1.0",
+  "name": "@fatturazione-elettronica-aruba/utils",
+  "version": "0.0.0",
   "description": "Shared utilities for Aruba Electronic Invoicing",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -40,6 +40,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@fatturazione-aruba/typescript-config": "workspace:*"
+    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*"
   }
 }

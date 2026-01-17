@@ -1,6 +1,6 @@
 {
-  "name": "@fatturazione-aruba/communications",
-  "version": "0.1.0",
+  "name": "@fatturazione-elettronica-aruba/communications",
+  "version": "0.0.0",
   "description": "Financial communications for Aruba Electronic Invoicing",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -40,9 +40,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@fatturazione-aruba/core": "workspace:*"
+    "@fatturazione-elettronica-aruba/core": "workspace:*"
   },
   "devDependencies": {
-    "@fatturazione-aruba/typescript-config": "workspace:*"
+    "@fatturazione-elettronica-aruba/typescript-config": "workspace:*"
   }
 }

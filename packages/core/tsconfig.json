@@ -1,5 +1,5 @@
 {
-  "extends": "@fatturazione-aruba/typescript-config/library.json",
+  "extends": "@fatturazione-elettronica-aruba/typescript-config/library.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

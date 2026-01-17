@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { ArubaClient } from '@fatturazione-aruba/core';
-import { CommunicationsClient } from '@fatturazione-aruba/communications';
+import { ArubaClient } from '@fatturazione-elettronica-aruba/core';
+import { CommunicationsClient } from '@fatturazione-elettronica-aruba/communications';
 import {
   createTestClient,
   skipIfNoCredentials,

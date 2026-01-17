@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { ArubaClient } from '@fatturazione-aruba/core';
-import { InvoicesClient } from '@fatturazione-aruba/invoices';
-import { NotificationsClient } from '@fatturazione-aruba/notifications';
+import { ArubaClient } from '@fatturazione-elettronica-aruba/core';
+import { InvoicesClient } from '@fatturazione-elettronica-aruba/invoices';
+import { NotificationsClient } from '@fatturazione-elettronica-aruba/notifications';
 import {
   createTestClient,
   skipIfNoCredentials,

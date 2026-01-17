@@ -56,26 +56,26 @@ importers:
 
   apps/example:
     dependencies:
-      '@fatturazione-aruba/communications':
+      '@fatturazione-elettronica-aruba/communications':
         specifier: workspace:*
         version: link:../../packages/communications
-      '@fatturazione-aruba/core':
+      '@fatturazione-elettronica-aruba/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@fatturazione-aruba/invoices':
+      '@fatturazione-elettronica-aruba/invoices':
         specifier: workspace:*
         version: link:../../packages/invoices
-      '@fatturazione-aruba/notifications':
+      '@fatturazione-elettronica-aruba/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
-      '@fatturazione-aruba/utils':
+      '@fatturazione-elettronica-aruba/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      '@fatturazione-aruba/xml-builder':
+      '@fatturazione-elettronica-aruba/xml-builder':
         specifier: workspace:*
         version: link:../../packages/xml-builder
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       tsx:
@@ -84,37 +84,37 @@ importers:
 
   packages/communications:
     dependencies:
-      '@fatturazione-aruba/core':
+      '@fatturazione-elettronica-aruba/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
   packages/core:
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
   packages/invoices:
     dependencies:
-      '@fatturazione-aruba/core':
+      '@fatturazione-elettronica-aruba/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
   packages/notifications:
     dependencies:
-      '@fatturazione-aruba/core':
+      '@fatturazione-elettronica-aruba/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
@@ -122,13 +122,13 @@ importers:
 
   packages/utils:
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
   packages/xml-builder:
     devDependencies:
-      '@fatturazione-aruba/typescript-config':
+      '@fatturazione-elettronica-aruba/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       tsup:
@@ -149,19 +149,19 @@ importers:
 
   tests/integration:
     dependencies:
-      '@fatturazione-aruba/communications':
+      '@fatturazione-elettronica-aruba/communications':
         specifier: workspace:*
         version: link:../../packages/communications
-      '@fatturazione-aruba/core':
+      '@fatturazione-elettronica-aruba/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@fatturazione-aruba/invoices':
+      '@fatturazione-elettronica-aruba/invoices':
         specifier: workspace:*
         version: link:../../packages/invoices
-      '@fatturazione-aruba/notifications':
+      '@fatturazione-elettronica-aruba/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
-      '@fatturazione-aruba/utils':
+      '@fatturazione-elettronica-aruba/utils':
         specifier: workspace:*
         version: link:../../packages/utils
     devDependencies:

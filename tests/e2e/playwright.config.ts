@@ -24,7 +24,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm --filter @fatturazione-aruba/docs preview',
+    command: 'pnpm --filter @fatturazione-elettronica-aruba/docs preview',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     cwd: '../../',

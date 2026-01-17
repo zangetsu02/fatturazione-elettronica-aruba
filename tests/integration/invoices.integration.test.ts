@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { ArubaClient } from '@fatturazione-aruba/core';
-import { InvoicesClient } from '@fatturazione-aruba/invoices';
-import { encodeBase64 } from '@fatturazione-aruba/utils';
+import { ArubaClient } from '@fatturazione-elettronica-aruba/core';
+import { InvoicesClient } from '@fatturazione-elettronica-aruba/invoices';
+import { encodeBase64 } from '@fatturazione-elettronica-aruba/utils';
 import {
   createTestClient,
   skipIfNoCredentials,

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationsClient } from '../notifications-client.js';
-import type { HttpClient } from '@fatturazione-aruba/core';
+import type { HttpClient } from '@fatturazione-elettronica-aruba/core';
 
 const createMockHttpClient = () => ({
   get: vi.fn(),

@@ -17,35 +17,35 @@ TypeScript SDK for integrating with [Aruba Electronic Invoicing API v2](https://
 
 | Package | Description |
 |---------|-------------|
-| [`@fatturazione-aruba/core`](./packages/core) | HTTP client, OAuth2 authentication, base types and errors |
-| [`@fatturazione-aruba/invoices`](./packages/invoices) | Send and receive electronic invoices |
-| [`@fatturazione-aruba/notifications`](./packages/notifications) | SDI notifications management (RC, MC, NS, etc.) |
-| [`@fatturazione-aruba/communications`](./packages/communications) | AdE communications (VAT settlements, invoice data) |
-| [`@fatturazione-aruba/utils`](./packages/utils) | Shared utilities (base64 encoding, date formatting) |
-| [`@fatturazione-aruba/xml-builder`](./packages/xml-builder) | FatturaPA XML builder with validation |
+| [`@fatturazione-elettronica-aruba/core`](./packages/core) | HTTP client, OAuth2 authentication, base types and errors |
+| [`@fatturazione-elettronica-aruba/invoices`](./packages/invoices) | Send and receive electronic invoices |
+| [`@fatturazione-elettronica-aruba/notifications`](./packages/notifications) | SDI notifications management (RC, MC, NS, etc.) |
+| [`@fatturazione-elettronica-aruba/communications`](./packages/communications) | AdE communications (VAT settlements, invoice data) |
+| [`@fatturazione-elettronica-aruba/utils`](./packages/utils) | Shared utilities (base64 encoding, date formatting) |
+| [`@fatturazione-elettronica-aruba/xml-builder`](./packages/xml-builder) | FatturaPA XML builder with validation |
 
 ## Installation
 
 ```bash
 # Core + Invoices (most common use case)
-pnpm add @fatturazione-aruba/core @fatturazione-aruba/invoices
+pnpm add @fatturazione-elettronica-aruba/core @fatturazione-elettronica-aruba/invoices
 
 # Add notifications
-pnpm add @fatturazione-aruba/notifications
+pnpm add @fatturazione-elettronica-aruba/notifications
 
 # Add communications (VAT settlements, etc.)
-pnpm add @fatturazione-aruba/communications
+pnpm add @fatturazione-elettronica-aruba/communications
 
 # Optional utilities
-pnpm add @fatturazione-aruba/utils
+pnpm add @fatturazione-elettronica-aruba/utils
 ```
 
 ## Quick Start
 
 ```typescript
-import { ArubaClient } from '@fatturazione-aruba/core';
-import { InvoicesClient } from '@fatturazione-aruba/invoices';
-import { encodeBase64 } from '@fatturazione-aruba/utils';
+import { ArubaClient } from '@fatturazione-elettronica-aruba/core';
+import { InvoicesClient } from '@fatturazione-elettronica-aruba/invoices';
+import { encodeBase64 } from '@fatturazione-elettronica-aruba/utils';
 import fs from 'node:fs';
 
 // 1. Initialize the client
@@ -67,7 +67,7 @@ console.log('Invoice sent:', result.uploadFileName);
 ## Error Handling
 
 ```typescript
-import { ArubaApiError, AuthenticationError, ValidationError } from '@fatturazione-aruba/core';
+import { ArubaApiError, AuthenticationError, ValidationError } from '@fatturazione-elettronica-aruba/core';
 
 try {
   await invoices.upload({ dataFile: xmlBase64 });
