@@ -50,7 +50,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zangetsu02/fatturazione_elettronica_aruba",
+    "url": "https://github.com/zangetsu02/fatturazione-elettronica-aruba",
     "directory": "packages/xml-builder"
   }
 }
