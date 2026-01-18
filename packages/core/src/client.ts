@@ -1,6 +1,6 @@
 import { HttpClient, type HttpClientOptions } from './http/client.js';
 import { AuthClient, type AuthClientOptions } from './auth/auth-client.js';
-import type { Environment, TokenStorage } from './types/index.js';
+import { type Environment, type TokenStorage, type Logger, ConsoleLogger } from './types/index.js';
 
 export interface ArubaClientOptions {
   environment: Environment;
@@ -9,17 +9,22 @@ export interface ArubaClientOptions {
   tokenStorage?: TokenStorage;
   autoRefresh?: boolean;
   refreshMargin?: number;
+  logger?: Logger;
 }
 
 export class ArubaClient {
   public readonly http: HttpClient;
   public readonly auth: AuthClient;
+  public readonly logger: Logger;
 
   constructor(options: ArubaClientOptions) {
+    this.logger = options.logger ?? new ConsoleLogger();
+
     const httpOptions: HttpClientOptions = {
       environment: options.environment,
       timeout: options.timeout,
       maxRetries: options.maxRetries,
+      logger: this.logger,
     };
 
     this.http = new HttpClient(httpOptions);
@@ -29,6 +34,7 @@ export class ArubaClient {
       tokenStorage: options.tokenStorage,
       autoRefresh: options.autoRefresh,
       refreshMargin: options.refreshMargin,
+      logger: this.logger,
     };
 
     this.auth = new AuthClient(authOptions);

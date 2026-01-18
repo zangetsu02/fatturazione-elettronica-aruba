@@ -7,6 +7,8 @@ import {
   TimeoutError,
   NetworkError,
   type ApiErrorResponse,
+  type Logger,
+  ConsoleLogger,
 } from '../types/index.js';
 
 export interface HttpClientOptions {
@@ -15,6 +17,7 @@ export interface HttpClientOptions {
   maxRetries?: number;
   retryDelay?: number;
   headers?: Record<string, string>;
+  logger?: Logger;
 }
 
 export interface RequestOptions {
@@ -31,6 +34,7 @@ export class HttpClient {
   private readonly maxRetries: number;
   private readonly retryDelay: number;
   private readonly defaultHeaders: Record<string, string>;
+  private readonly logger: Logger;
   private accessToken: string | null = null;
 
   constructor(options: HttpClientOptions) {
@@ -38,6 +42,7 @@ export class HttpClient {
     this.timeout = options.timeout ?? 30000;
     this.maxRetries = options.maxRetries ?? 3;
     this.retryDelay = options.retryDelay ?? 1000;
+    this.logger = options.logger ?? new ConsoleLogger();
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       Accept: 'application/json',

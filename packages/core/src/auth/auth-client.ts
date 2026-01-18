@@ -8,6 +8,8 @@ import {
   type PagedResponse,
   MemoryTokenStorage,
   AuthenticationError,
+  type Logger,
+  ConsoleLogger,
 } from '../types/index.js';
 
 export interface AuthClientOptions {
@@ -15,6 +17,7 @@ export interface AuthClientOptions {
   tokenStorage?: TokenStorage;
   autoRefresh?: boolean;
   refreshMargin?: number;
+  logger?: Logger;
 }
 
 export class AuthClient {
@@ -22,6 +25,7 @@ export class AuthClient {
   private readonly tokenStorage: TokenStorage;
   private readonly autoRefresh: boolean;
   private readonly refreshMargin: number;
+  private readonly logger: Logger;
   private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: AuthClientOptions) {
@@ -29,6 +33,7 @@ export class AuthClient {
     this.tokenStorage = options.tokenStorage ?? new MemoryTokenStorage();
     this.autoRefresh = options.autoRefresh ?? true;
     this.refreshMargin = options.refreshMargin ?? 60;
+    this.logger = options.logger ?? new ConsoleLogger();
   }
 
   async signIn(username: string, password: string): Promise<AuthToken> {
@@ -120,8 +125,9 @@ export class AuthClient {
       this.refreshTimeout = setTimeout(async () => {
         try {
           await this.refresh();
+          this.logger.debug('Token refreshed successfully');
         } catch (error) {
-          console.error('Auto-refresh failed:', error);
+          this.logger.error('Auto-refresh failed:', error);
         }
       }, refreshIn);
     }
