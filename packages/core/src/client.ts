@@ -23,7 +23,7 @@ export class ArubaClient {
     const httpOptions: HttpClientOptions = {
       environment: options.environment,
       timeout: options.timeout,
-      maxRetries: options.maxRetries,
+      retry: options.maxRetries ? { maxRetries: options.maxRetries } : undefined,
       logger: this.logger,
     };
 
