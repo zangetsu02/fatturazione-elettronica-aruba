@@ -921,7 +921,7 @@ export class FatturaSerializer {
   // HELPER METHODS
   // ============================================================================
 
-  private serializeSection(name: string, obj: unknown, indent: string): string {
+  private serializeSection(name: string, obj: unknown, _indent: string): string {
     // Placeholder - utilizzare il serializer generico se necessario
     return this.serializer.serialize(name, obj);
   }
