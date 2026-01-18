@@ -49,3 +49,6 @@ export {
   type TokenStorage,
   MemoryTokenStorage,
 } from './auth.js';
+
+// Logger types
+export { type LogLevel, type Logger, ConsoleLogger, NoopLogger } from './logger.js';
