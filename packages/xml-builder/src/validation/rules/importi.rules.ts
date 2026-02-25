@@ -120,7 +120,7 @@ export function validateQuantita(
 
   // Verifica range
   const absValue = Math.abs(value);
-  if (absValue > 999999999999.99999999) {
+  if (absValue > 999999999999.99) {
     errors.push({
       path,
       message: 'Quantità supera il valore massimo consentito',
