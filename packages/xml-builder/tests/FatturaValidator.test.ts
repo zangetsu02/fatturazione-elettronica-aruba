@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FatturaValidator, validateFattura } from '../src/validation';
+import { validateFattura } from '../src/validation';
 import { FatturaBuilder } from '../src/builder';
 import type { FatturaElettronica } from '../src/types';
 
@@ -110,7 +110,7 @@ describe('FatturaValidator', () => {
       const result = validateFattura(fattura);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.code === 'INVALID_LENGTH')).toBe(true);
+      expect(result.errors.some((e) => e.code === 'INVALID_CODICE_DESTINATARIO_B2B')).toBe(true);
     });
 
     it('should validate codice destinatario length for PA', () => {
@@ -121,7 +121,7 @@ describe('FatturaValidator', () => {
       const result = validateFattura(fattura);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.code === 'INVALID_LENGTH')).toBe(true);
+      expect(result.errors.some((e) => e.code === 'INVALID_CODICE_DESTINATARIO_PA')).toBe(true);
     });
 
     it('should validate partita IVA italiana format', () => {
@@ -134,7 +134,8 @@ describe('FatturaValidator', () => {
       const result = validateFattura(fattura);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.code === 'INVALID_PIVA')).toBe(true);
+      // New code from SDI: 00401
+      expect(result.errors.some((e) => e.code === '00401')).toBe(true);
     });
 
     it('should validate codice fiscale format', () => {
@@ -144,7 +145,8 @@ describe('FatturaValidator', () => {
       const result = validateFattura(fattura);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.code === 'INVALID_CF')).toBe(true);
+      // New code from SDI: 00403
+      expect(result.errors.some((e) => e.code === '00403')).toBe(true);
     });
 
     it('should accept valid codice fiscale for persona fisica', () => {
@@ -262,14 +264,15 @@ describe('FatturaValidator', () => {
   });
 
   describe('warnings', () => {
-    it('should generate warning when PEC is missing with codiceDestinatario 0000000', () => {
+    it('should generate error when PEC is missing with codiceDestinatario 0000000', () => {
       const fattura = createValidFattura();
       fattura.fatturaElettronicaHeader.datiTrasmissione.codiceDestinatario = '0000000';
       // pecDestinatario is not set
 
       const result = validateFattura(fattura);
 
-      expect(result.warnings.some((w) => w.code === 'MISSING_PEC')).toBe(true);
+      // SDI 00411: PEC is now required (error), not just a warning
+      expect(result.errors.some((e) => e.code === '00411')).toBe(true);
     });
 
     it('should generate warning when riferimentoNormativo is missing with natura', () => {
@@ -283,19 +286,23 @@ describe('FatturaValidator', () => {
 
       const result = validateFattura(fattura);
 
-      expect(result.warnings.some((w) => w.code === 'MISSING_REFERENCE')).toBe(true);
+      expect(result.warnings.some((w) => w.code === 'MISSING_RIFERIMENTO_NORMATIVO')).toBe(true);
     });
   });
 
   describe('options', () => {
     it('should treat warnings as errors in strict mode', () => {
       const fattura = createValidFattura();
-      fattura.fatturaElettronicaHeader.datiTrasmissione.codiceDestinatario = '0000000';
+      // Add a warning condition: anagrafica with both denominazione and nome
+      fattura.fatturaElettronicaHeader.cedentePrestatore.datiAnagrafici.anagrafica = {
+        denominazione: 'Azienda Test SRL',
+        nome: 'Mario', // Should not coexist with denominazione
+      };
 
       const result = validateFattura(fattura, { strict: true });
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.code === 'MISSING_PEC')).toBe(true);
+      expect(result.errors.some((e) => e.code === 'CONFLICTING_ANAGRAFIC_DATA')).toBe(true);
       expect(result.warnings).toHaveLength(0);
     });
 
@@ -346,7 +353,8 @@ describe('FatturaValidator', () => {
 
       const result = validateFattura(fattura);
 
-      expect(result.warnings.some((w) => w.code === 'TAX_MISMATCH')).toBe(true);
+      // New code: IMPOSTA_MISMATCH
+      expect(result.warnings.some((w) => w.code === 'IMPOSTA_MISMATCH')).toBe(true);
     });
 
     it('should skip totals validation when disabled', () => {

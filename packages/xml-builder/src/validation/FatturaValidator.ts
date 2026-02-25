@@ -9,51 +9,71 @@ import type {
   DatiBeniServizi,
   DettaglioLinee,
   DatiRiepilogo,
+  DatiPagamento,
 } from '../types';
 
-/**
- * Errore di validazione
- */
+// Import validation rules
+import {
+  validateIdFiscaleIVA as validateIdFiscaleIVARule,
+  validateCodiceFiscale as validateCodiceFiscaleRule,
+  validatePecDestinatario,
+  validateCodiceDestinatario,
+  validateIdentificativoFiscalePresente,
+} from './rules/anagrafica.rules';
+
+import {
+  validateNumeroLinea,
+  validateAliquotaIVA,
+  validateImpostaRiepilogo,
+} from './rules/importi.rules';
+
+import {
+  validateIBAN,
+  validateBIC,
+  validateABI,
+  validateCAB,
+  validateModalitaPagamento,
+  validateCoerenzaPagamento,
+} from './rules/pagamenti.rules';
+
+import {
+  validateCoerenzaRitenuta,
+  validateCoerenzaCassaPrevidenziale,
+  validateNatura,
+  validateTipoDocumento,
+  validateCoerenzaEsigibilita,
+  validateCoerenzaTipoDocumentoImporti,
+  validateRiferimentoNormativo,
+} from './rules/coerenza.rules';
+
+import {
+  ID_PAESE_PATTERN,
+  FORMATO_TRASMISSIONE_VALIDI,
+  REGIME_FISCALE_VALIDI,
+  NUMERO_LINEA_MAX,
+  MAX_LENGTH,
+} from './patterns';
+
 export interface ValidationError {
-  /** Percorso del campo con errore */
   path: string;
-  /** Messaggio di errore */
   message: string;
-  /** Codice errore */
   code: string;
 }
 
-/**
- * Risultato della validazione
- */
 export interface ValidationResult {
-  /** Indica se la fattura è valida */
   valid: boolean;
-  /** Lista degli errori di validazione */
   errors: ValidationError[];
-  /** Lista degli avvisi (non bloccanti) */
   warnings: ValidationError[];
 }
 
-/**
- * Opzioni di validazione
- */
 export interface ValidationOptions {
-  /** Validare i totali (default: true) */
   validateTotals?: boolean;
-  /** Validare il codice fiscale (default: true) */
   validateCodiceFiscale?: boolean;
-  /** Validare la partita IVA (default: true) */
   validatePartitaIVA?: boolean;
-  /** Validare le date (default: true) */
   validateDates?: boolean;
-  /** Modalità strict - tratta i warning come errori (default: false) */
+  validatePagamenti?: boolean;
   strict?: boolean;
 }
-
-/**
- * Validatore per fatture elettroniche FatturaPA
- */
 export class FatturaValidator {
   private errors: ValidationError[] = [];
   private warnings: ValidationError[] = [];
@@ -65,13 +85,10 @@ export class FatturaValidator {
       validateCodiceFiscale: options.validateCodiceFiscale ?? true,
       validatePartitaIVA: options.validatePartitaIVA ?? true,
       validateDates: options.validateDates ?? true,
+      validatePagamenti: options.validatePagamenti ?? true,
       strict: options.strict ?? false,
     };
   }
-
-  /**
-   * Valida una fattura elettronica
-   */
   validate(fattura: FatturaElettronica): ValidationResult {
     this.errors = [];
     this.warnings = [];
@@ -100,9 +117,7 @@ export class FatturaValidator {
     };
   }
 
-  // ============================================================================
   // HEADER VALIDATION
-  // ============================================================================
 
   private validateHeader(header: FatturaElettronicaHeader): void {
     const basePath = 'fatturaElettronicaHeader';
@@ -121,93 +136,79 @@ export class FatturaValidator {
   }
 
   private validateDatiTrasmissione(dati: DatiTrasmissione, path: string): void {
-    // IdTrasmittente
+    // IdTrasmittente - usa regole modulari
     this.validateRequired(dati.idTrasmittente, `${path}.idTrasmittente`);
-    this.validateRequired(dati.idTrasmittente?.idPaese, `${path}.idTrasmittente.idPaese`);
-    this.validateRequired(dati.idTrasmittente?.idCodice, `${path}.idTrasmittente.idCodice`);
-
-    if (dati.idTrasmittente?.idPaese) {
-      this.validateCountryCode(dati.idTrasmittente.idPaese, `${path}.idTrasmittente.idPaese`);
+    if (dati.idTrasmittente) {
+      const idFiscaleResult = validateIdFiscaleIVARule(
+        dati.idTrasmittente,
+        `${path}.idTrasmittente`,
+        false // non validare come PIVA italiana
+      );
+      this.mergeResults(idFiscaleResult);
     }
 
     // ProgressivoInvio
     this.validateRequired(dati.progressivoInvio, `${path}.progressivoInvio`);
-    if (dati.progressivoInvio && dati.progressivoInvio.length > 10) {
+    if (dati.progressivoInvio && dati.progressivoInvio.length > MAX_LENGTH.progressivoInvio) {
       this.addError(
         `${path}.progressivoInvio`,
-        'ProgressivoInvio non può superare 10 caratteri',
+        `ProgressivoInvio non può superare ${MAX_LENGTH.progressivoInvio} caratteri`,
         'MAX_LENGTH'
       );
     }
 
     // FormatoTrasmissione
     this.validateRequired(dati.formatoTrasmissione, `${path}.formatoTrasmissione`);
-    if (
-      dati.formatoTrasmissione &&
-      !['FPA12', 'FPR12', 'FSM10'].includes(dati.formatoTrasmissione)
-    ) {
+    if (dati.formatoTrasmissione && !FORMATO_TRASMISSIONE_VALIDI.has(dati.formatoTrasmissione)) {
       this.addError(
         `${path}.formatoTrasmissione`,
-        'FormatoTrasmissione non valido',
+        'FormatoTrasmissione non valido. Valori ammessi: FPA12, FPR12, FSM10',
         'INVALID_ENUM'
       );
     }
 
-    // CodiceDestinatario
-    this.validateRequired(dati.codiceDestinatario, `${path}.codiceDestinatario`);
-    if (dati.codiceDestinatario) {
-      if (dati.formatoTrasmissione === 'FPA12' && dati.codiceDestinatario.length !== 6) {
-        this.addError(
-          `${path}.codiceDestinatario`,
-          'CodiceDestinatario per PA deve essere di 6 caratteri',
-          'INVALID_LENGTH'
-        );
-      } else if (dati.formatoTrasmissione === 'FPR12' && dati.codiceDestinatario.length !== 7) {
-        this.addError(
-          `${path}.codiceDestinatario`,
-          'CodiceDestinatario per B2B deve essere di 7 caratteri',
-          'INVALID_LENGTH'
-        );
-      }
-    }
+    // CodiceDestinatario - usa regole modulari
+    const codDestResult = validateCodiceDestinatario(
+      dati.codiceDestinatario,
+      dati.formatoTrasmissione,
+      `${path}.codiceDestinatario`
+    );
+    this.mergeResults(codDestResult);
 
-    // PEC è richiesta se CodiceDestinatario è 0000000
-    if (dati.codiceDestinatario === '0000000' && !dati.pecDestinatario) {
-      this.addWarning(
-        `${path}.pecDestinatario`,
-        'PEC destinatario consigliata quando CodiceDestinatario è 0000000',
-        'MISSING_PEC'
-      );
-    }
+    // PECDestinatario - usa regole modulari (SDI 00411)
+    const pecResult = validatePecDestinatario(dati.pecDestinatario, dati.codiceDestinatario, path);
+    this.mergeResults(pecResult);
   }
 
   private validateCedentePrestatore(cedente: CedentePrestatore, path: string): void {
     // DatiAnagrafici
     this.validateRequired(cedente.datiAnagrafici, `${path}.datiAnagrafici`);
 
-    // IdFiscaleIVA o CodiceFiscale richiesto
-    if (!cedente.datiAnagrafici?.idFiscaleIVA && !cedente.datiAnagrafici?.codiceFiscale) {
-      this.addError(
-        `${path}.datiAnagrafici`,
-        'Almeno uno tra IdFiscaleIVA e CodiceFiscale è richiesto',
-        'MISSING_FISCAL_ID'
-      );
-    }
+    // IdFiscaleIVA o CodiceFiscale richiesto - usa regole modulari
+    const idFiscalePresente = validateIdentificativoFiscalePresente(
+      cedente.datiAnagrafici?.idFiscaleIVA,
+      cedente.datiAnagrafici?.codiceFiscale,
+      `${path}.datiAnagrafici`
+    );
+    this.mergeResults(idFiscalePresente);
 
-    // Validazione Partita IVA
-    if (cedente.datiAnagrafici?.idFiscaleIVA) {
-      this.validateIdFiscaleIVA(
+    // Validazione Partita IVA - usa regole modulari (SDI 00401)
+    if (cedente.datiAnagrafici?.idFiscaleIVA && this.options.validatePartitaIVA) {
+      const idFiscaleResult = validateIdFiscaleIVARule(
         cedente.datiAnagrafici.idFiscaleIVA,
-        `${path}.datiAnagrafici.idFiscaleIVA`
+        `${path}.datiAnagrafici.idFiscaleIVA`,
+        true
       );
+      this.mergeResults(idFiscaleResult);
     }
 
-    // Validazione Codice Fiscale
+    // Validazione Codice Fiscale - usa regole modulari (SDI 00403)
     if (cedente.datiAnagrafici?.codiceFiscale && this.options.validateCodiceFiscale) {
-      this.validateCodiceFiscale(
+      const cfResult = validateCodiceFiscaleRule(
         cedente.datiAnagrafici.codiceFiscale,
         `${path}.datiAnagrafici.codiceFiscale`
       );
+      this.mergeResults(cfResult);
     }
 
     // Anagrafica
@@ -222,6 +223,16 @@ export class FatturaValidator {
       cedente.datiAnagrafici?.regimeFiscale,
       `${path}.datiAnagrafici.regimeFiscale`
     );
+    if (
+      cedente.datiAnagrafici?.regimeFiscale &&
+      !REGIME_FISCALE_VALIDI.has(cedente.datiAnagrafici.regimeFiscale)
+    ) {
+      this.addError(
+        `${path}.datiAnagrafici.regimeFiscale`,
+        'RegimeFiscale non valido. Valori ammessi: RF01-RF19',
+        'INVALID_REGIME_FISCALE'
+      );
+    }
 
     // Sede
     this.validateRequired(cedente.sede, `${path}.sede`);
@@ -242,20 +253,23 @@ export class FatturaValidator {
       `${path}.datiAnagrafici.anagrafica`
     );
 
-    // Validazione Partita IVA se presente
-    if (cessionario.datiAnagrafici?.idFiscaleIVA) {
-      this.validateIdFiscaleIVA(
+    // Validazione Partita IVA se presente - usa regole modulari (SDI 00401)
+    if (cessionario.datiAnagrafici?.idFiscaleIVA && this.options.validatePartitaIVA) {
+      const idFiscaleResult = validateIdFiscaleIVARule(
         cessionario.datiAnagrafici.idFiscaleIVA,
-        `${path}.datiAnagrafici.idFiscaleIVA`
+        `${path}.datiAnagrafici.idFiscaleIVA`,
+        true
       );
+      this.mergeResults(idFiscaleResult);
     }
 
-    // Validazione Codice Fiscale se presente
+    // Validazione Codice Fiscale se presente - usa regole modulari (SDI 00403)
     if (cessionario.datiAnagrafici?.codiceFiscale && this.options.validateCodiceFiscale) {
-      this.validateCodiceFiscale(
+      const cfResult = validateCodiceFiscaleRule(
         cessionario.datiAnagrafici.codiceFiscale,
         `${path}.datiAnagrafici.codiceFiscale`
       );
+      this.mergeResults(cfResult);
     }
 
     // Sede
@@ -263,9 +277,7 @@ export class FatturaValidator {
     this.validateIndirizzo(cessionario.sede, `${path}.sede`);
   }
 
-  // ============================================================================
   // BODY VALIDATION
-  // ============================================================================
 
   private validateBody(body: FatturaElettronicaBody, path: string): void {
     // DatiGenerali
@@ -279,14 +291,40 @@ export class FatturaValidator {
       body.datiGenerali,
       `${path}.datiBeniServizi`
     );
+
+    // Validazione coerenza Ritenuta/Cassa (SDI 00419, 00420)
+    this.validateCoerenzaRitenutaCassa(body, path);
+
+    // DatiPagamento
+    if (body.datiPagamento && this.options.validatePagamenti) {
+      this.validateDatiPagamento(
+        body.datiPagamento,
+        body.datiGenerali.datiGeneraliDocumento.importoTotaleDocumento,
+        `${path}.datiPagamento`
+      );
+    }
   }
 
   private validateDatiGenerali(dati: DatiGenerali, path: string): void {
     const doc = dati.datiGeneraliDocumento;
     this.validateRequired(doc, `${path}.datiGeneraliDocumento`);
 
-    // TipoDocumento
-    this.validateRequired(doc?.tipoDocumento, `${path}.datiGeneraliDocumento.tipoDocumento`);
+    // TipoDocumento - usa regole modulari
+    const tipoDocResult = validateTipoDocumento(
+      doc?.tipoDocumento,
+      `${path}.datiGeneraliDocumento.tipoDocumento`
+    );
+    this.mergeResults(tipoDocResult);
+
+    // Coerenza TipoDocumento con importi
+    if (doc?.tipoDocumento && doc?.importoTotaleDocumento !== undefined) {
+      const coerenzaResult = validateCoerenzaTipoDocumentoImporti(
+        doc.tipoDocumento,
+        doc.importoTotaleDocumento,
+        `${path}.datiGeneraliDocumento`
+      );
+      this.mergeResults(coerenzaResult);
+    }
 
     // Divisa
     this.validateRequired(doc?.divisa, `${path}.datiGeneraliDocumento.divisa`);
@@ -306,10 +344,10 @@ export class FatturaValidator {
 
     // Numero
     this.validateRequired(doc?.numero, `${path}.datiGeneraliDocumento.numero`);
-    if (doc?.numero && doc.numero.length > 20) {
+    if (doc?.numero && doc.numero.length > MAX_LENGTH.numeroDocumento) {
       this.addError(
         `${path}.datiGeneraliDocumento.numero`,
-        'Numero documento non può superare 20 caratteri',
+        `Numero documento non può superare ${MAX_LENGTH.numeroDocumento} caratteri`,
         'MAX_LENGTH'
       );
     }
@@ -318,10 +356,10 @@ export class FatturaValidator {
     if (doc?.causale) {
       for (let i = 0; i < doc.causale.length; i++) {
         const causale = doc.causale[i];
-        if (causale && causale.length > 200) {
+        if (causale && causale.length > MAX_LENGTH.causale) {
           this.addError(
             `${path}.datiGeneraliDocumento.causale[${i}]`,
-            'Causale non può superare 200 caratteri',
+            `Causale non può superare ${MAX_LENGTH.causale} caratteri`,
             'MAX_LENGTH'
           );
         }
@@ -384,22 +422,25 @@ export class FatturaValidator {
   }
 
   private validateDettaglioLinea(linea: DettaglioLinee, path: string): void {
-    // NumeroLinea
-    this.validateRequired(linea.numeroLinea, `${path}.numeroLinea`);
-    if (linea.numeroLinea !== undefined && linea.numeroLinea < 1) {
+    // NumeroLinea - usa regole modulari
+    const numLineaResult = validateNumeroLinea(linea.numeroLinea, `${path}.numeroLinea`);
+    this.mergeResults(numLineaResult);
+
+    // Verifica range NumeroLinea aggiuntivo
+    if (linea.numeroLinea !== undefined && linea.numeroLinea > NUMERO_LINEA_MAX) {
       this.addError(
         `${path}.numeroLinea`,
-        'NumeroLinea deve essere maggiore di 0',
-        'INVALID_VALUE'
+        `NumeroLinea non può superare ${NUMERO_LINEA_MAX}`,
+        'INVALID_NUMERO_LINEA_RANGE'
       );
     }
 
     // Descrizione
     this.validateRequired(linea.descrizione, `${path}.descrizione`);
-    if (linea.descrizione && linea.descrizione.length > 1000) {
+    if (linea.descrizione && linea.descrizione.length > MAX_LENGTH.descrizioneLinea) {
       this.addError(
         `${path}.descrizione`,
-        'Descrizione non può superare 1000 caratteri',
+        `Descrizione non può superare ${MAX_LENGTH.descrizioneLinea} caratteri`,
         'MAX_LENGTH'
       );
     }
@@ -414,19 +455,13 @@ export class FatturaValidator {
       this.addError(`${path}.prezzoTotale`, 'PrezzoTotale è richiesto', 'REQUIRED');
     }
 
-    // AliquotaIVA
-    if (linea.aliquotaIVA === undefined) {
-      this.addError(`${path}.aliquotaIVA`, 'AliquotaIVA è richiesto', 'REQUIRED');
-    }
+    // AliquotaIVA - usa regole modulari
+    const aliquotaResult = validateAliquotaIVA(linea.aliquotaIVA, `${path}.aliquotaIVA`);
+    this.mergeResults(aliquotaResult);
 
-    // Natura richiesta se AliquotaIVA è 0
-    if (linea.aliquotaIVA === 0 && !linea.natura) {
-      this.addError(
-        `${path}.natura`,
-        'Natura è richiesta quando AliquotaIVA è 0',
-        'REQUIRED_WHEN_ZERO_VAT'
-      );
-    }
+    // Natura - usa regole modulari
+    const naturaResult = validateNatura(linea.natura, linea.aliquotaIVA, `${path}.natura`);
+    this.mergeResults(naturaResult);
 
     // Validazione date periodo
     if (linea.dataInizioPeriodo && linea.dataFinePeriodo && this.options.validateDates) {
@@ -444,10 +479,9 @@ export class FatturaValidator {
   }
 
   private validateDatiRiepilogo(riepilogo: DatiRiepilogo, path: string): void {
-    // AliquotaIVA
-    if (riepilogo.aliquotaIVA === undefined) {
-      this.addError(`${path}.aliquotaIVA`, 'AliquotaIVA è richiesto', 'REQUIRED');
-    }
+    // AliquotaIVA - usa regole modulari
+    const aliquotaResult = validateAliquotaIVA(riepilogo.aliquotaIVA, `${path}.aliquotaIVA`);
+    this.mergeResults(aliquotaResult);
 
     // ImponibileImporto
     if (riepilogo.imponibileImporto === undefined) {
@@ -456,29 +490,156 @@ export class FatturaValidator {
 
     // Imposta
     if (riepilogo.imposta === undefined) {
-      this.addError(`${path}.imposta`, 'Imposta è richieto', 'REQUIRED');
+      this.addError(`${path}.imposta`, 'Imposta è richiesta', 'REQUIRED');
     }
 
-    // Natura richiesta se AliquotaIVA è 0
-    if (riepilogo.aliquotaIVA === 0 && !riepilogo.natura) {
-      this.addError(
-        `${path}.natura`,
-        'Natura è richiesta quando AliquotaIVA è 0',
-        'REQUIRED_WHEN_ZERO_VAT'
+    // Validazione imposta calcolata
+    if (
+      riepilogo.imponibileImporto !== undefined &&
+      riepilogo.aliquotaIVA !== undefined &&
+      riepilogo.imposta !== undefined
+    ) {
+      const impostaResult = validateImpostaRiepilogo(
+        riepilogo.imponibileImporto,
+        riepilogo.aliquotaIVA,
+        riepilogo.imposta,
+        path
       );
+      this.mergeResults(impostaResult);
     }
 
-    // RiferimentoNormativo consigliato se Natura presente
-    if (riepilogo.natura && !riepilogo.riferimentoNormativo) {
-      this.addWarning(
-        `${path}.riferimentoNormativo`,
-        'RiferimentoNormativo consigliato quando Natura è presente',
-        'MISSING_REFERENCE'
+    // Natura - usa regole modulari
+    const naturaResult = validateNatura(riepilogo.natura, riepilogo.aliquotaIVA, `${path}.natura`);
+    this.mergeResults(naturaResult);
+
+    // EsigibilitaIVA - usa regole modulari
+    if (riepilogo.esigibilitaIVA) {
+      const esigResult = validateCoerenzaEsigibilita(
+        riepilogo.esigibilitaIVA,
+        riepilogo.natura,
+        riepilogo.aliquotaIVA,
+        `${path}.esigibilitaIVA`
       );
+      this.mergeResults(esigResult);
+    }
+
+    // RiferimentoNormativo - usa regole modulari
+    const rifNormResult = validateRiferimentoNormativo(
+      riepilogo.natura,
+      riepilogo.riferimentoNormativo,
+      `${path}.riferimentoNormativo`
+    );
+    this.mergeResults(rifNormResult);
+  }
+
+  private validateCoerenzaRitenutaCassa(body: FatturaElettronicaBody, path: string): void {
+    const datiRitenuta = body.datiGenerali.datiGeneraliDocumento.datiRitenuta;
+    const datiCassa = body.datiGenerali.datiGeneraliDocumento.datiCassaPrevidenziale;
+    const linee = body.datiBeniServizi.dettaglioLinee;
+
+    // Valida coerenza Ritenuta (SDI 00419)
+    const ritenutaResult = validateCoerenzaRitenuta(
+      datiRitenuta,
+      linee.map((l) => ({
+        numeroLinea: l.numeroLinea,
+        ritenuta: l.ritenuta,
+        aliquotaIVA: l.aliquotaIVA,
+        natura: l.natura,
+      })),
+      datiCassa,
+      `${path}.datiGenerali.datiGeneraliDocumento`
+    );
+    this.mergeResults(ritenutaResult);
+
+    // Valida coerenza Cassa Previdenziale (SDI 00420)
+    const cassaResult = validateCoerenzaCassaPrevidenziale(
+      datiRitenuta,
+      datiCassa,
+      `${path}.datiGenerali.datiGeneraliDocumento`
+    );
+    this.mergeResults(cassaResult);
+  }
+
+  private validateDatiPagamento(
+    datiPagamento: DatiPagamento[],
+    importoTotaleDocumento: number | undefined,
+    path: string
+  ): void {
+    for (let i = 0; i < datiPagamento.length; i++) {
+      const pagamento = datiPagamento[i];
+      if (!pagamento) continue;
+
+      const pagPath = `${path}[${i}]`;
+
+      // CondizioniPagamento
+      this.validateRequired(pagamento.condizioniPagamento, `${pagPath}.condizioniPagamento`);
+
+      // DettaglioPagamento
+      if (pagamento.dettaglioPagamento) {
+        for (let j = 0; j < pagamento.dettaglioPagamento.length; j++) {
+          const dettaglio = pagamento.dettaglioPagamento[j];
+          if (!dettaglio) continue;
+
+          const detPath = `${pagPath}.dettaglioPagamento[${j}]`;
+
+          // ModalitaPagamento - usa regole modulari
+          const modResult = validateModalitaPagamento(
+            dettaglio.modalitaPagamento,
+            `${detPath}.modalitaPagamento`
+          );
+          this.mergeResults(modResult);
+
+          // IBAN - usa regole modulari
+          if (dettaglio.iban) {
+            const ibanResult = validateIBAN(dettaglio.iban, `${detPath}.iban`);
+            this.mergeResults(ibanResult);
+          }
+
+          // BIC - usa regole modulari
+          if (dettaglio.bic) {
+            const bicResult = validateBIC(dettaglio.bic, `${detPath}.bic`);
+            this.mergeResults(bicResult);
+          }
+
+          // ABI - usa regole modulari
+          if (dettaglio.abi) {
+            const abiResult = validateABI(dettaglio.abi, `${detPath}.abi`);
+            this.mergeResults(abiResult);
+          }
+
+          // CAB - usa regole modulari
+          if (dettaglio.cab) {
+            const cabResult = validateCAB(dettaglio.cab, `${detPath}.cab`);
+            this.mergeResults(cabResult);
+          }
+
+          // Coerenza pagamento - usa regole modulari
+          const coerenzaResult = validateCoerenzaPagamento(
+            {
+              modalitaPagamento: dettaglio.modalitaPagamento,
+              iban: dettaglio.iban,
+              abi: dettaglio.abi,
+              cab: dettaglio.cab,
+              bic: dettaglio.bic,
+            },
+            detPath
+          );
+          this.mergeResults(coerenzaResult);
+
+          // ImportoPagamento
+          if (dettaglio.importoPagamento === undefined) {
+            this.addError(
+              `${detPath}.importoPagamento`,
+              'ImportoPagamento è richiesto',
+              'REQUIRED'
+            );
+          }
+        }
+      }
     }
   }
 
-  private validateTotals(dati: DatiBeniServizi, datiGenerali: DatiGenerali, path: string): void {
+  private validateTotals(dati: DatiBeniServizi, _datiGenerali: DatiGenerali, path: string): void {
     // Raggruppa linee per aliquota IVA
     const linesByVat = new Map<number, number>();
     for (const linea of dati.dettaglioLinee) {
@@ -499,27 +660,19 @@ export class FatturaValidator {
           'TOTAL_MISMATCH'
         );
       }
-
-      // Verifica imposta
-      const expectedImposta = (riepilogo.imponibileImporto * riepilogo.aliquotaIVA) / 100;
-      const impostaDiff = Math.abs(expectedImposta - riepilogo.imposta);
-      if (impostaDiff > 0.01) {
-        this.addWarning(
-          `${path}.datiRiepilogo`,
-          `Imposta per aliquota ${riepilogo.aliquotaIVA}% non corrisponde (atteso: ${expectedImposta.toFixed(2)}, trovato: ${riepilogo.imposta.toFixed(2)})`,
-          'TAX_MISMATCH'
-        );
-      }
     }
   }
 
-  // ============================================================================
   // HELPER VALIDATION METHODS
-  // ============================================================================
+
+  private mergeResults(result: { errors: ValidationError[]; warnings: ValidationError[] }): void {
+    this.errors.push(...result.errors);
+    this.warnings.push(...result.warnings);
+  }
 
   private validateRequired(value: unknown, path: string): boolean {
     if (value === undefined || value === null || value === '') {
-      this.addError(path, `Campo richiesto`, 'REQUIRED');
+      this.addError(path, 'Campo richiesto', 'REQUIRED');
       return false;
     }
     return true;
@@ -548,10 +701,37 @@ export class FatturaValidator {
         'CONFLICTING_ANAGRAFIC_DATA'
       );
     }
+
+    // Lunghezza massima denominazione
+    if (anagrafica.denominazione && anagrafica.denominazione.length > MAX_LENGTH.denominazione) {
+      this.addError(
+        `${path}.denominazione`,
+        `Denominazione non può superare ${MAX_LENGTH.denominazione} caratteri`,
+        'MAX_LENGTH'
+      );
+    }
+
+    // Lunghezza massima nome/cognome
+    if (anagrafica.nome && anagrafica.nome.length > MAX_LENGTH.nome) {
+      this.addError(
+        `${path}.nome`,
+        `Nome non può superare ${MAX_LENGTH.nome} caratteri`,
+        'MAX_LENGTH'
+      );
+    }
+    if (anagrafica.cognome && anagrafica.cognome.length > MAX_LENGTH.cognome) {
+      this.addError(
+        `${path}.cognome`,
+        `Cognome non può superare ${MAX_LENGTH.cognome} caratteri`,
+        'MAX_LENGTH'
+      );
+    }
   }
 
   private validateIndirizzo(
-    indirizzo: { indirizzo: string; cap: string; comune: string; nazione: string } | undefined,
+    indirizzo:
+      | { indirizzo: string; cap: string; comune: string; provincia?: string; nazione: string }
+      | undefined,
     path: string
   ): void {
     if (!indirizzo) return;
@@ -561,6 +741,35 @@ export class FatturaValidator {
     this.validateRequired(indirizzo.comune, `${path}.comune`);
     this.validateRequired(indirizzo.nazione, `${path}.nazione`);
 
+    // Lunghezza massima indirizzo
+    if (indirizzo.indirizzo && indirizzo.indirizzo.length > MAX_LENGTH.indirizzo) {
+      this.addError(
+        `${path}.indirizzo`,
+        `Indirizzo non può superare ${MAX_LENGTH.indirizzo} caratteri`,
+        'MAX_LENGTH'
+      );
+    }
+
+    // Lunghezza massima comune
+    if (indirizzo.comune && indirizzo.comune.length > MAX_LENGTH.comune) {
+      this.addError(
+        `${path}.comune`,
+        `Comune non può superare ${MAX_LENGTH.comune} caratteri`,
+        'MAX_LENGTH'
+      );
+    }
+
+    // Provincia (2 caratteri per Italia)
+    if (indirizzo.nazione === 'IT' && indirizzo.provincia) {
+      if (indirizzo.provincia.length !== MAX_LENGTH.provincia) {
+        this.addError(
+          `${path}.provincia`,
+          `Provincia italiana deve essere di ${MAX_LENGTH.provincia} caratteri`,
+          'INVALID_PROVINCIA'
+        );
+      }
+    }
+
     // CAP italiano deve essere di 5 cifre
     if (indirizzo.nazione === 'IT' && indirizzo.cap) {
       if (!/^\d{5}$/.test(indirizzo.cap)) {
@@ -569,45 +778,9 @@ export class FatturaValidator {
     }
 
     // Validazione codice nazione
-    this.validateCountryCode(indirizzo.nazione, `${path}.nazione`);
-  }
-
-  private validateIdFiscaleIVA(
-    idFiscale: { idPaese: string; idCodice: string },
-    path: string
-  ): void {
-    this.validateRequired(idFiscale.idPaese, `${path}.idPaese`);
-    this.validateRequired(idFiscale.idCodice, `${path}.idCodice`);
-
-    this.validateCountryCode(idFiscale.idPaese, `${path}.idPaese`);
-
-    // Partita IVA italiana deve essere di 11 cifre
-    if (idFiscale.idPaese === 'IT' && this.options.validatePartitaIVA) {
-      if (!/^\d{11}$/.test(idFiscale.idCodice)) {
-        this.addError(
-          `${path}.idCodice`,
-          'Partita IVA italiana deve essere di 11 cifre',
-          'INVALID_PIVA'
-        );
-      }
-    }
-  }
-
-  private validateCodiceFiscale(codiceFiscale: string, path: string): void {
-    // Codice fiscale italiano: 16 caratteri alfanumerici oppure 11 numeri (per persone giuridiche)
-    const cfRegex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i;
-    const pivaRegex = /^\d{11}$/;
-
-    if (!cfRegex.test(codiceFiscale) && !pivaRegex.test(codiceFiscale)) {
-      this.addError(path, 'Codice fiscale non valido', 'INVALID_CF');
-    }
-  }
-
-  private validateCountryCode(code: string, path: string): void {
-    // Codice ISO 3166-1 alpha-2
-    if (!/^[A-Z]{2}$/.test(code)) {
+    if (indirizzo.nazione && !ID_PAESE_PATTERN.test(indirizzo.nazione)) {
       this.addError(
-        path,
+        `${path}.nazione`,
         'Codice paese deve essere ISO 3166-1 alpha-2 (2 lettere maiuscole)',
         'INVALID_COUNTRY_CODE'
       );
@@ -638,9 +811,6 @@ export class FatturaValidator {
   }
 }
 
-/**
- * Valida una fattura elettronica
- */
 export function validateFattura(
   fattura: FatturaElettronica,
   options?: ValidationOptions
