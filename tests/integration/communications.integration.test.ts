@@ -19,7 +19,7 @@ describe.skipIf(!hasCredentials)('Communications Integration Tests', () => {
       process.env.ARUBA_USERNAME!,
       process.env.ARUBA_PASSWORD!
     );
-    communications = new CommunicationsClient(client.http);
+    communications = new CommunicationsClient({ httpClient: client.http });
   });
 
   it('should have communications client initialized', () => {

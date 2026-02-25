@@ -32,16 +32,31 @@ export class ResponseHandler {
       );
     }
 
-    const errorBody = await this.tryParseJson<ApiErrorResponse>(response);
+    const errorBody = await this.tryParseJson<unknown>(response);
 
-    if (errorBody) {
+    if (errorBody && this.isApiErrorResponse(errorBody)) {
       return ArubaApiError.fromResponse(errorBody, response.status);
     }
 
+    const fallbackMessage = errorBody
+      ? JSON.stringify(errorBody as object)
+      : response.statusText || 'Request failed';
+
     return new ArubaApiError(
-      response.statusText || 'Request failed',
+      fallbackMessage,
       'HTTP_ERROR',
       response.status
+    );
+  }
+
+  private isApiErrorResponse(body: unknown): body is ApiErrorResponse {
+    if (typeof body !== 'object' || body === null) return false;
+    const obj = body as Record<string, unknown>;
+    return (
+      typeof obj.error === 'object' &&
+      obj.error !== null &&
+      'message' in obj.error &&
+      'code' in obj.error
     );
   }
 

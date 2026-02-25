@@ -5,3 +5,5 @@
 ### Minor Changes
 
 - feat: alpha version
+- chore: remove JSDoc comments from FatturaValidator.ts for cleaner code
+- refactor: simplify section separator comments in validation classes
