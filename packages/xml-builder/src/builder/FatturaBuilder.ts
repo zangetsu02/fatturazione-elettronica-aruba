@@ -9,12 +9,43 @@ import type {
   TerzoIntermediarioOSoggettoEmittente,
   DatiGenerali,
   DatiBeniServizi,
+  DettaglioLinee,
   DatiPagamento,
   Allegati,
   DatiVeicoli,
   SoggettoEmittente,
   VersioneSchema,
+  EsigibilitaIVA,
 } from '../types';
+import { calcolaPrezzoTotale, calcolaRiepilogo, nomeFileSdi } from '../utils';
+import {
+  FatturaValidator,
+  type ValidationOptions,
+  type ValidationResult,
+} from '../validation';
+import { FatturaSerializer, type FatturaSerializerOptions } from '../serializer';
+
+export type DettaglioLineaInput = Omit<DettaglioLinee, 'numeroLinea' | 'prezzoTotale'> & {
+  numeroLinea?: number;
+  prezzoTotale?: number;
+};
+
+/** Risultato completo pronto per l'invio: oggetto, XML, validazione e nome file SDI. */
+export interface FatturaResult {
+  /** L'XML FatturaPA pronto per l'invio allo SDI / Aruba */
+  xml: string;
+  /** Nome file conforme al formato SDI: <IdPaese><IdCodice>_<Progressivo>.xml */
+  filename: string;
+  /** La struttura oggetto della fattura (utile per debug/log) */
+  fattura: FatturaElettronica;
+  /** Esito della validazione contro le regole FatturaPA */
+  validazione: ValidationResult;
+}
+
+export interface ToResultOptions {
+  validation?: ValidationOptions;
+  serializer?: FatturaSerializerOptions;
+}
 
 export class FatturaBuilder {
   private versione: VersioneSchema = '1.2.2';
@@ -26,6 +57,8 @@ export class FatturaBuilder {
   private soggettoEmittente?: SoggettoEmittente;
   private bodies: FatturaElettronicaBody[] = [];
   private currentBody: Partial<FatturaElettronicaBody> = {};
+  private currentLinee: DettaglioLinee[] = [];
+  private esigibilitaIVA: EsigibilitaIVA = 'I';
 
   static create(): FatturaBuilder {
     return new FatturaBuilder();
@@ -114,6 +147,28 @@ export class FatturaBuilder {
     return this;
   }
 
+  setEsigibilitaIVA(esigibilitaIVA: EsigibilitaIVA): this {
+    this.esigibilitaIVA = esigibilitaIVA;
+    return this;
+  }
+
+  addLinea(linea: DettaglioLineaInput): this {
+    const numeroLinea = linea.numeroLinea ?? this.currentLinee.length + 1;
+    const prezzoTotale =
+      linea.prezzoTotale ??
+      calcolaPrezzoTotale(linea.prezzoUnitario, linea.quantita ?? 1, linea.scontoMaggiorazione);
+    this.currentLinee.push({ ...linea, numeroLinea, prezzoTotale });
+    return this;
+  }
+
+  setDettaglioLinee(linee: DettaglioLineaInput[]): this {
+    this.currentLinee = [];
+    for (const linea of linee) {
+      this.addLinea(linea);
+    }
+    return this;
+  }
+
   setDatiPagamento(datiPagamento: DatiPagamento[]): this {
     this.currentBody.datiPagamento = datiPagamento;
     return this;
@@ -146,9 +201,11 @@ export class FatturaBuilder {
   }
 
   finalizeBody(): this {
-    if (this.currentBody.datiGenerali && this.currentBody.datiBeniServizi) {
-      this.bodies.push(this.currentBody as FatturaElettronicaBody);
+    const body = this.resolveCurrentBody();
+    if (body) {
+      this.bodies.push(body);
       this.currentBody = {};
+      this.currentLinee = [];
     }
     return this;
   }
@@ -156,6 +213,62 @@ export class FatturaBuilder {
   newBody(): this {
     this.finalizeBody();
     return this;
+  }
+
+  private resolveCurrentBody(): FatturaElettronicaBody | undefined {
+    const datiGenerali = this.currentBody.datiGenerali;
+    let datiBeniServizi = this.currentBody.datiBeniServizi;
+    let totaleCalcolato: number | undefined;
+
+    if (!datiBeniServizi && this.currentLinee.length > 0) {
+      const { datiRiepilogo, importoTotaleDocumento } = calcolaRiepilogo(this.currentLinee, {
+        esigibilitaIVA: this.esigibilitaIVA,
+      });
+      datiBeniServizi = { dettaglioLinee: this.currentLinee, datiRiepilogo };
+      totaleCalcolato = importoTotaleDocumento;
+    }
+
+    if (!datiGenerali || !datiBeniServizi) {
+      return undefined;
+    }
+
+    let resolvedDatiGenerali = datiGenerali;
+    if (
+      totaleCalcolato !== undefined &&
+      datiGenerali.datiGeneraliDocumento.importoTotaleDocumento === undefined
+    ) {
+      resolvedDatiGenerali = {
+        ...datiGenerali,
+        datiGeneraliDocumento: {
+          ...datiGenerali.datiGeneraliDocumento,
+          importoTotaleDocumento: totaleCalcolato,
+        },
+      };
+    }
+
+    return {
+      ...this.currentBody,
+      datiGenerali: resolvedDatiGenerali,
+      datiBeniServizi,
+    } as FatturaElettronicaBody;
+  }
+
+  private assemble(): FatturaElettronica {
+    const bodies = [...this.bodies];
+    const current = this.resolveCurrentBody();
+    if (current) {
+      bodies.push(current);
+    }
+
+    if (bodies.length === 0) {
+      throw new Error('Nessun body presente nella fattura');
+    }
+
+    return {
+      versione: this.versione,
+      fatturaElettronicaHeader: this.buildHeader(),
+      fatturaElettronicaBody: bodies,
+    };
   }
 
   private buildHeader(): FatturaElettronicaHeader {
@@ -191,18 +304,29 @@ export class FatturaBuilder {
   }
 
   build(): FatturaElettronica {
-    if (this.currentBody.datiGenerali && this.currentBody.datiBeniServizi) {
-      this.bodies.push(this.currentBody as FatturaElettronicaBody);
-    }
+    return this.assemble();
+  }
 
-    if (this.bodies.length === 0) {
-      throw new Error('Nessun body presente nella fattura');
-    }
+  validate(options?: ValidationOptions): ValidationResult {
+    return new FatturaValidator(options).validate(this.assemble());
+  }
 
+  toXml(options?: FatturaSerializerOptions): string {
+    return new FatturaSerializer(options).serialize(this.assemble());
+  }
+
+  toResult(options?: ToResultOptions): FatturaResult {
+    const fattura = this.assemble();
+    const datiTrasmissione = fattura.fatturaElettronicaHeader.datiTrasmissione;
     return {
-      versione: this.versione,
-      fatturaElettronicaHeader: this.buildHeader(),
-      fatturaElettronicaBody: this.bodies,
+      fattura,
+      validazione: new FatturaValidator(options?.validation).validate(fattura),
+      xml: new FatturaSerializer(options?.serializer).serialize(fattura),
+      filename: nomeFileSdi(
+        datiTrasmissione.idTrasmittente.idPaese,
+        datiTrasmissione.idTrasmittente.idCodice,
+        datiTrasmissione.progressivoInvio
+      ),
     };
   }
 
@@ -216,6 +340,8 @@ export class FatturaBuilder {
     this.soggettoEmittente = undefined;
     this.bodies = [];
     this.currentBody = {};
+    this.currentLinee = [];
+    this.esigibilitaIVA = 'I';
     return this;
   }
 }

@@ -631,7 +631,7 @@ export class FatturaSerializer {
       lines.push(`${indent}    <Descrizione>${this.escapeXml(linea.descrizione)}</Descrizione>`);
 
       if (linea.quantita !== undefined) {
-        lines.push(`${indent}    <Quantita>${this.formatDecimal(linea.quantita)}</Quantita>`);
+        lines.push(`${indent}    <Quantita>${this.formatQuantita(linea.quantita)}</Quantita>`);
       }
 
       if (linea.unitaMisura) {
@@ -1188,8 +1188,10 @@ export class FatturaSerializer {
     return lines.join('\n');
   }
 
-  private escapeXml(str: string): string {
-    return str
+  private escapeXml(value: unknown): string {
+    // Coercizione difensiva: i numerici di DB (Postgres) o i valori ri-parsati
+    // da `destr` possono arrivare come number e farebbero crashare .replace().
+    return String(value ?? '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -1197,7 +1199,21 @@ export class FatturaSerializer {
       .replace(/'/g, '&apos;');
   }
 
-  private formatDecimal(num: number): string {
-    return num.toFixed(2);
+  /** Formatta importi/aliquote a 2 decimali (formato richiesto dall'XSD per i prezzi). */
+  private formatDecimal(value: number | string): string {
+    const num = Number(value);
+    return (Number.isFinite(num) ? num : 0).toFixed(2);
+  }
+
+  /**
+   * Formatta una quantità con 2-8 decimali (XSD: [0-9]{1,12}\.[0-9]{2,8}).
+   * Mantiene la precisione fino a 8 decimali senza troncare a 2 (es. 0.001 kg),
+   * conservando comunque il minimo di 2 decimali richiesto.
+   */
+  private formatQuantita(value: number | string): string {
+    const num = Number(value);
+    const safe = Number.isFinite(num) ? num : 0;
+    const [intPart, decPart = ''] = safe.toFixed(8).replace(/0+$/, '').split('.');
+    return `${intPart}.${decPart.padEnd(2, '0')}`;
   }
 }

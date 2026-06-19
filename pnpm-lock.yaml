@@ -179,6 +179,9 @@ importers:
       '@fatturazione-elettronica-aruba/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@fatturazione-elettronica-aruba/xml-builder':
+        specifier: workspace:*
+        version: link:../../packages/xml-builder
     devDependencies:
       dotenv:
         specifier: ^16.3.1

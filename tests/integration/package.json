@@ -16,6 +16,7 @@
     "@fatturazione-elettronica-aruba/invoices": "workspace:*",
     "@fatturazione-elettronica-aruba/notifications": "workspace:*",
     "@fatturazione-elettronica-aruba/communications": "workspace:*",
-    "@fatturazione-elettronica-aruba/utils": "workspace:*"
+    "@fatturazione-elettronica-aruba/utils": "workspace:*",
+    "@fatturazione-elettronica-aruba/xml-builder": "workspace:*"
   }
 }
