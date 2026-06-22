@@ -1,6 +1,6 @@
 {
   "name": "@fatturazione-elettronica-aruba/notifications",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SDI notifications management for Aruba Electronic Invoicing",
   "type": "module",
   "main": "./dist/index.cjs",
