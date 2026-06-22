@@ -10,6 +10,13 @@ export interface ArubaClientOptions {
   autoRefresh?: boolean;
   refreshMargin?: number;
   logger?: Logger;
+  /**
+   * Credenziali per l'autenticazione automatica. Se fornite, il client si
+   * autentica (e rinnova) da solo a ogni richiesta: non serve chiamare
+   * `auth.signIn()` né `auth.ensureAuthenticated()` manualmente.
+   */
+  username?: string;
+  password?: string;
 }
 
 export class ArubaClient {
@@ -35,9 +42,17 @@ export class ArubaClient {
       autoRefresh: options.autoRefresh,
       refreshMargin: options.refreshMargin,
       logger: this.logger,
+      username: options.username,
+      password: options.password,
     };
 
     this.auth = new AuthClient(authOptions);
+
+    // Autenticazione automatica trasparente: ogni richiesta (non-auth) assicura
+    // un token valido prima di partire, e un 401 innesca una ri-autenticazione
+    // con retry. Così i consumer non devono chiamare signIn/ensureAuthenticated.
+    this.http.setRequestInterceptor(() => this.auth.ensureAuthenticated());
+    this.http.setOnUnauthorized(() => this.auth.reauthenticate());
   }
 
   isAuthenticated(): boolean {

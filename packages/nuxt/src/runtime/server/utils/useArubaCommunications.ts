@@ -5,14 +5,13 @@ let communicationsInstance: CommunicationsClient | null = null;
 
 /**
  * Returns a singleton instance of CommunicationsClient for managing AdE communications.
+ * The underlying ArubaClient authenticates/refreshes automatically per request.
  *
  * @example
  * ```ts
- * // In a server route or API handler
- * export default defineEventHandler(async (event) => {
+ * export default defineEventHandler(async () => {
  *   const communications = useArubaCommunications();
  *
- *   // Search VAT liquidations
  *   const liquidations = await communications.findLiquidazioni({
  *     creationDateStart: '2024-01-01',
  *     creationDateEnd: '2024-12-31',
@@ -27,6 +26,5 @@ export function useArubaCommunications(): CommunicationsClient {
     const client = useArubaClient();
     communicationsInstance = new CommunicationsClient({ httpClient: client.http });
   }
-
   return communicationsInstance;
 }

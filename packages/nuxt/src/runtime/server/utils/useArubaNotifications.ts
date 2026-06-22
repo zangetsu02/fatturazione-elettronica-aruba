@@ -5,14 +5,13 @@ let notificationsInstance: NotificationsClient | null = null;
 
 /**
  * Returns a singleton instance of NotificationsClient for managing SDI notifications.
+ * The underlying ArubaClient authenticates/refreshes automatically per request.
  *
  * @example
  * ```ts
- * // In a server route or API handler
- * export default defineEventHandler(async (event) => {
+ * export default defineEventHandler(async () => {
  *   const notifications = useArubaNotifications();
  *
- *   // Get delivery receipts (RC)
  *   const receipts = await notifications.findDeliveryReceipts({
  *     creationDateStart: '2024-01-01',
  *     creationDateEnd: '2024-12-31',
@@ -27,6 +26,5 @@ export function useArubaNotifications(): NotificationsClient {
     const client = useArubaClient();
     notificationsInstance = new NotificationsClient({ httpClient: client.http });
   }
-
   return notificationsInstance;
 }

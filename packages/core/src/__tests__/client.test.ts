@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ArubaClient } from '../index.js';
+import { ArubaClient, HttpClient } from '../index.js';
 
 describe('ArubaClient', () => {
   it('should create client with demo environment', () => {
@@ -30,10 +30,11 @@ describe('ArubaClient', () => {
 });
 
 describe('HttpClient', () => {
-  let client: ArubaClient;
+  // Transport-only tests: use a bare HttpClient (no auth interceptor wired).
+  let http: HttpClient;
 
   beforeEach(() => {
-    client = new ArubaClient({ environment: 'demo' });
+    http = new HttpClient({ environment: 'demo' });
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -42,13 +43,13 @@ describe('HttpClient', () => {
   });
 
   it('should set and get access token', () => {
-    expect(client.http.getAccessToken()).toBeNull();
+    expect(http.getAccessToken()).toBeNull();
 
-    client.http.setAccessToken('test-token');
-    expect(client.http.getAccessToken()).toBe('test-token');
+    http.setAccessToken('test-token');
+    expect(http.getAccessToken()).toBe('test-token');
 
-    client.http.setAccessToken(null);
-    expect(client.http.getAccessToken()).toBeNull();
+    http.setAccessToken(null);
+    expect(http.getAccessToken()).toBeNull();
   });
 
   it('should make GET request with correct URL', async () => {
@@ -59,7 +60,7 @@ describe('HttpClient', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    const result = await client.http.get<{ data: string }>('ws', '/api/v2/test');
+    const result = await http.get<{ data: string }>('ws', '/api/v2/test');
 
     expect(result).toEqual({ data: 'test' });
     expect(mockFetch).toHaveBeenCalledWith(
@@ -81,7 +82,7 @@ describe('HttpClient', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    await client.http.get('ws', '/api/v2/test', { page: 0, size: 20 });
+    await http.get('ws', '/api/v2/test', { page: 0, size: 20 });
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://demows.fatturazioneelettronica.aruba.it/api/v2/test?page=0&size=20',
@@ -97,8 +98,8 @@ describe('HttpClient', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    client.http.setAccessToken('my-token');
-    await client.http.get('ws', '/api/v2/test');
+    http.setAccessToken('my-token');
+    await http.get('ws', '/api/v2/test');
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -119,7 +120,7 @@ describe('HttpClient', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     const body = { data: 'test' };
-    await client.http.post('ws', '/api/v2/test', body);
+    await http.post('ws', '/api/v2/test', body);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://demows.fatturazioneelettronica.aruba.it/api/v2/test',
@@ -138,7 +139,7 @@ describe('HttpClient', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    await client.http.postForm('auth', '/auth/signin', {
+    await http.postForm('auth', '/auth/signin', {
       grant_type: 'password',
       username: 'user',
       password: 'pass',

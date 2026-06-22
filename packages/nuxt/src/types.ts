@@ -16,6 +16,18 @@ export interface ModuleOptions {
    * @default 'demo'
    */
   environment?: 'demo' | 'production';
+
+  /**
+   * Refresh automatico del token prima della scadenza.
+   * @default true
+   */
+  autoRefresh?: boolean;
+
+  /**
+   * Margine (in secondi) prima della scadenza in cui rinnovare il token.
+   * @default 60
+   */
+  refreshMargin?: number;
 }
 
 declare module '@nuxt/schema' {
@@ -30,6 +42,8 @@ declare module '@nuxt/schema' {
       username: string;
       password: string;
       environment: 'demo' | 'production';
+      autoRefresh: boolean;
+      refreshMargin: number;
     };
   }
 }
